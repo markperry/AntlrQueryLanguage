@@ -7,7 +7,7 @@ namespace Antlr
 {
     class Program
     {
-        private const string Input = "name = 'Bob' OR age < '26'";
+        private const string Input = "name != 'Bob'";
 
         static void Main(string[] args)
         {

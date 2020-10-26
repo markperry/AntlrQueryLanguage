@@ -5,10 +5,10 @@ grammar Query;
  */
 
 query                   : expression EOF;
-expression              : expression operation expressionPart 
-                         | expressionPart;
+expression              : expression operation expressionPart |
+                          expressionPart;
 operation               : OR | AND;                                               
-expressionPart          : (NOT)? ATTRIBUTE COMPARISON QUOTEDVALUE;
+expressionPart          : ATTRIBUTE COMPARISON QUOTEDVALUE;
 
 
 /*
@@ -17,13 +17,13 @@ expressionPart          : (NOT)? ATTRIBUTE COMPARISON QUOTEDVALUE;
 
 OR      : 'OR';
 AND     : 'AND';
-NOT     : 'NOT';
 
 COMPARISON     : GREATER | 
                  LESSER | 
                  EQUAL | 
                  GREATER EQUAL | 
-                 LESSER EQUAL;
+                 LESSER EQUAL |
+                 NOT EQUAL;
 QUOTEDVALUE    : QUOTE ('\\\'' | ()? ~'\'')* QUOTE;
 ATTRIBUTE      : (LETTER)+;
 WHITESPACE     : (' ' | '\t' | '\n' | '\r')+ -> skip;
@@ -34,4 +34,5 @@ fragment SPECIAL       : '_' | '-' | '.';
 fragment GREATER       : '>';
 fragment LESSER        : '<';
 fragment EQUAL         : '=';
+fragment NOT           : '!';
 fragment QUOTE         : '\'';

@@ -38,13 +38,12 @@ namespace Antlr
 
         public override object VisitExpressionPart(QueryParser.ExpressionPartContext context)
         {
-            var notCompare = !string.IsNullOrWhiteSpace(context.NOT()?.GetText());
             var attribute = context.ATTRIBUTE().GetText();
             var comparison = context.COMPARISON().GetText();
             var value = context.QUOTEDVALUE().GetText();
             
             var filtered = _allData
-                .Where(x => Evaluate(x, attribute, comparison, value, notCompare))
+                .Where(x => Evaluate(x, attribute, comparison, value))
                 .Select(x => x["name"])
                 .ToHashSet();
 
@@ -66,26 +65,21 @@ namespace Antlr
             return base.VisitOperation(context);
         }
 
-        private bool Evaluate(Dictionary<string,string> dictionary, string attribute, string operation, string compare, bool negateCompare)
+        private bool Evaluate(Dictionary<string,string> dictionary, string attribute, string operation, string compare)
         {
             var attributeValue = dictionary[attribute];
 
             compare = compare.Replace("'", String.Empty);
             if (Int32.TryParse(attributeValue, out var intValue) && Int32.TryParse(compare, out var intComparison))
             {
-                return RunComparison(intValue, intComparison, operation, negateCompare);
+                return RunComparison(intValue, intComparison, operation);
             }
 
-            return RunComparison(String.Compare(attributeValue, compare, StringComparison.InvariantCultureIgnoreCase), 0, operation, negateCompare);
+            return RunComparison(String.Compare(attributeValue, compare, StringComparison.InvariantCultureIgnoreCase), 0, operation);
         }
 
-        private bool RunComparison(int compare, int p1, string comparison, bool negateCompare)
+        private bool RunComparison(int compare, int p1, string comparison)
         {
-            if (negateCompare)
-            {
-                p1 *= -1;
-            }
-            
             return comparison switch
             {
                 ">" => compare > p1,
@@ -93,6 +87,7 @@ namespace Antlr
                 "<" => compare < p1,
                 "<=" => compare <= p1,
                 "=" => compare == p1,
+                "!=" => compare != p1
             };
         }
     }
