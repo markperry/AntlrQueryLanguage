@@ -6,7 +6,7 @@ grammar Query;
 
 query                   : orExpression EOF;
 orExpression            : andExpression (OR andExpression)*;
-andExpression           : expressionPart (AND expressionPart)*;                                             
+andExpression           : expressionPart (AND expressionPart)*;
 expressionPart          : ATTRIBUTE COMPARISON QUOTEDVALUE;
 
 /*
