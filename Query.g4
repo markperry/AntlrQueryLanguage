@@ -4,12 +4,10 @@ grammar Query;
  * Parser Rules
  */
 
-query                   : expression EOF;
-expression              : expression operation expressionPart |
-                          expressionPart;
-operation               : OR | AND;                                               
+query                   : orExpression EOF;
+orExpression            : andExpression (OR andExpression)*;
+andExpression           : expressionPart (AND expressionPart)*;                                             
 expressionPart          : ATTRIBUTE COMPARISON QUOTEDVALUE;
-
 
 /*
  * Lexer Rules

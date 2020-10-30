@@ -7,11 +7,10 @@ namespace Antlr
 {
     public class QueryVisitor : QueryBaseVisitor<object>
     {
-        private IEnumerable<Dictionary<string,string>> _allData = new List<Dictionary<string, string>>();
-        private string _operation = string.Empty;
-        private HashSet<string> _left;
-        private HashSet<string> _right;
-        
+        private IEnumerable<Dictionary<string, string>> _allData = new List<Dictionary<string, string>>();
+        private HashSet<string> _left = new HashSet<string>();
+        private HashSet<string> _right = new HashSet<string>();
+
         public override object Visit(IParseTree tree)
         {
             _allData = Data.GetData();
@@ -19,18 +18,25 @@ namespace Antlr
             return _allData.Where(x => _left.Contains(x["name"])).ToList();
         }
 
-        public override object VisitExpression(QueryParser.ExpressionContext context)
+        public override object VisitOrExpression(QueryParser.OrExpressionContext context)
         {
-            base.VisitExpression(context);
+            base.VisitOrExpression(context);
 
-            switch(_operation)
+            if (_right.Any())
             {
-                case "OR":
-                    _left.UnionWith(_right);
-                    break;
-                case"AND":
-                    _left.IntersectWith(_right);
-                    break;
+                _left.UnionWith(_right);
+            }
+
+            return new { };
+        }
+
+        public override object VisitAndExpression(QueryParser.AndExpressionContext context)
+        {
+            base.VisitAndExpression(context);
+
+            if (_right.Any())
+            {
+                _left.IntersectWith(_right);
             }
 
             return new { };
@@ -41,13 +47,13 @@ namespace Antlr
             var attribute = context.ATTRIBUTE().GetText();
             var comparison = context.COMPARISON().GetText();
             var value = context.QUOTEDVALUE().GetText();
-            
+
             var filtered = _allData
                 .Where(x => Evaluate(x, attribute, comparison, value))
                 .Select(x => x["name"])
                 .ToHashSet();
 
-            if (string.IsNullOrWhiteSpace(_operation))
+            if (!_left.Any())
             {
                 _left = filtered;
             }
@@ -59,13 +65,7 @@ namespace Antlr
             return base.VisitExpressionPart(context);
         }
 
-        public override object VisitOperation(QueryParser.OperationContext context)
-        {
-            _operation = context.GetText();
-            return base.VisitOperation(context);
-        }
-
-        private bool Evaluate(Dictionary<string,string> dictionary, string attribute, string operation, string compare)
+        private bool Evaluate(Dictionary<string, string> dictionary, string attribute, string operation, string compare)
         {
             var attributeValue = dictionary[attribute];
 
@@ -75,7 +75,8 @@ namespace Antlr
                 return RunComparison(intValue, intComparison, operation);
             }
 
-            return RunComparison(String.Compare(attributeValue, compare, StringComparison.InvariantCultureIgnoreCase), 0, operation);
+            return RunComparison(String.Compare(attributeValue, compare, StringComparison.InvariantCultureIgnoreCase),
+                0, operation);
         }
 
         private bool RunComparison(int compare, int p1, string comparison)
