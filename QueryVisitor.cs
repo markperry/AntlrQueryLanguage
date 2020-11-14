@@ -32,9 +32,15 @@ namespace Antlr
 
         public override object VisitAndExpression(QueryParser.AndExpressionContext context)
         {
+            // Visit children first, to ensure we populate left and right filter results.
             base.VisitAndExpression(context);
 
-            if (_right.Any())
+            /*
+             * AndExpression sits under OrExpression in the tree so we pass through here even when AND
+             * is not in the expression. Checking the child count ensures we only evaluate if there
+             * is more than one expression. E.g. if we are actually inside the AndExpression.
+             */
+            if (_right.Any() && context.children.Count > 1)
             {
                 _left.IntersectWith(_right);
             }

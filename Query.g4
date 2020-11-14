@@ -23,7 +23,7 @@ COMPARISON     : GREATER |
                  LESSER EQUAL |
                  NOT EQUAL;
 QUOTEDVALUE    : QUOTE ('\\\'' | ()? ~'\'')* QUOTE;
-ATTRIBUTE      : (LETTER)+;
+ATTRIBUTE      : (LETTER | SPECIAL)+;
 WHITESPACE     : (' ' | '\t' | '\n' | '\r')+ -> skip;
 
 fragment DIGIT         : [0-9];
