@@ -7,44 +7,23 @@ namespace Antlr
 {
     public class QueryVisitor : QueryBaseVisitor<object>
     {
-        private IEnumerable<Dictionary<string, string>> _allData = new List<Dictionary<string, string>>();
-        private HashSet<string> _left = new HashSet<string>();
-        private HashSet<string> _right = new HashSet<string>();
+        private List<Dictionary<string, string>> _allData = new List<Dictionary<string, string>>();
+        private IEnumerable<Dictionary<string, string>> _filterTarget = new List<Dictionary<string, string>>();
+        private List<Dictionary<string, string>> _filterResults = new List<Dictionary<string, string>>();
 
         public override object Visit(IParseTree tree)
         {
             _allData = Data.GetData();
             base.Visit(tree);
-            return _allData.Where(x => _left.Contains(x["name"])).ToList();
-        }
-
-        public override object VisitOrExpression(QueryParser.OrExpressionContext context)
-        {
-            base.VisitOrExpression(context);
-
-            if (_right.Any())
-            {
-                _left.UnionWith(_right);
-            }
-
-            return new { };
+            return _filterResults.Distinct().ToList();
         }
 
         public override object VisitAndExpression(QueryParser.AndExpressionContext context)
         {
-            // Visit children first, to ensure we populate left and right filter results.
+            _filterTarget = new List<Dictionary<string, string>>(_allData);
             base.VisitAndExpression(context);
-
-            /*
-             * AndExpression sits under OrExpression in the tree so we pass through here even when AND
-             * is not in the expression. Checking the child count ensures we only evaluate if there
-             * is more than one expression. E.g. if we are actually inside the AndExpression.
-             */
-            if (_right.Any() && context.children.Count > 1)
-            {
-                _left.IntersectWith(_right);
-            }
-
+            _filterResults.AddRange(_filterTarget.ToList());
+            _filterTarget = new List<Dictionary<string, string>>();
             return new { };
         }
 
@@ -54,19 +33,8 @@ namespace Antlr
             var comparison = context.COMPARISON().GetText();
             var value = context.QUOTEDVALUE().GetText();
 
-            var filtered = _allData
-                .Where(x => Evaluate(x, attribute, comparison, value))
-                .Select(x => x["name"])
-                .ToHashSet();
-
-            if (!_left.Any())
-            {
-                _left = filtered;
-            }
-            else
-            {
-                _right = filtered;
-            }
+            _filterTarget = _filterTarget
+                .Where(x => Evaluate(x, attribute, comparison, value));
 
             return base.VisitExpressionPart(context);
         }

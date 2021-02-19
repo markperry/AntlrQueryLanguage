@@ -4,7 +4,7 @@ namespace Antlr
 {
     public static class Data
     {
-        public static IEnumerable<Dictionary<string, string>> GetData()
+        public static List<Dictionary<string, string>> GetData()
         {
             return new List<Dictionary<string, string>>
             {
@@ -14,7 +14,21 @@ namespace Antlr
                     {"age", "20"},
                     {"eye_colour", "blue"}
                 },
+                
+                new Dictionary<string, string>
+                {
+                    {"name", "Bob"},
+                    {"age", "25"},
+                    {"eye_colour", "blue"}
+                },
 
+                new Dictionary<string, string>
+                {
+                    {"name", "John"},
+                    {"age", "20"},
+                    {"eye_colour", "brown"}
+                },
+                
                 new Dictionary<string, string>
                 {
                     {"name", "John"},
